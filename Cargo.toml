@@ -1,0 +1,12 @@
+[package]
+name = "mars-servo"
+version = "0.0.1"
+authors = ["Josh Mcguigan"]
+edition = "2018"
+
+[[bin]]
+name = "mars"
+path = "src/main.rs"
+
+[dependencies]
+structopt = "0.3"
