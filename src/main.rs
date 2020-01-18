@@ -8,6 +8,9 @@ use structopt::StructOpt;
 mod build;
 use build::build;
 
+mod config;
+use config::Config;
+
 #[derive(StructOpt)]
 #[structopt(about = "the Servo build tool")]
 struct Args {
