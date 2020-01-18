@@ -654,9 +654,30 @@ fn handle_android_target(target: &str) -> bool {
     unimplemented!();
 }
 
-fn pick_media_stack(media_stack: Option<String>, target: &Option<String>) -> Vec<String> {
-    // TODO translation
-    vec![]
+fn pick_media_stack(
+    media_stack: Option<String>,
+    target: &Option<String>
+    ) -> Vec<String> {
+    let media_stack = media_stack.unwrap_or_else(|| {
+        let use_gstreamer = match target {
+            Some(target) => {
+                let android = target.contains("arm7") &&
+                    target.contains("android");
+                let x86_64 = target.contains("x86_64");
+
+                android || x86_64
+            },
+            None => true,
+        };
+
+        if use_gstreamer {
+            String::from("gstreamer")
+        } else {
+            String::from("dummy")
+        }
+    });
+
+    vec![format!("media-{}", media_stack)]
 }
 
 fn get_target_dir() -> PathBuf {
