@@ -74,13 +74,28 @@ struct BuildArgs {
 }
 
 fn main() {
+    let repo_root = match get_repo_root() {
+        Some(path) => path,
+        None => {
+            eprintln!("You must run mars within a servo repository.");
+            exit(1)
+        },
+    };
     let args = Args::from_args();
     match args.cmd {
-        Subcommands::Build(build_args) => build(build_args, args.common),
+        Subcommands::Build(build_args) => build(repo_root, build_args, args.common),
     };
 }
 
-fn build(build_args: BuildArgs, common_args: CommonArgs) {
+/// When the current working directory is either the root
+/// of a servo repository or a subdirectory of a servo
+/// repository, this will return the path to the root of
+/// the repository. Otherwise it will return None.
+fn get_repo_root() -> Option<PathBuf> {
+    Some(PathBuf::from("/home/josh/workspace/servo"))
+}
+
+fn build(repo_root: PathBuf, build_args: BuildArgs, common_args: CommonArgs) {
     let BuildArgs {
         mut dev,
         mut release,
@@ -637,6 +652,7 @@ fn build(build_args: BuildArgs, common_args: CommonArgs) {
         env.insert(String::from("CXX"), String::from("clang++"));
     }
     let status = run_cargo_build_like_command(
+        repo_root,
         "build", opts, env, verbose,
         target, android, magicleap, libsimpleservo, uwp,
         features, // TODO translation **kwargs
@@ -725,6 +741,7 @@ fn host_triple() -> String {
 }
 
 fn run_cargo_build_like_command(
+    repo_root: PathBuf,
     command: &str, mut cargo_args: Vec<String>,
     env: HashMap<String, String>, verbose: bool,
     target: Option<String>, android: bool, magicleap: bool, libsimpleservo: bool, uwp: bool,
@@ -758,9 +775,15 @@ fn run_cargo_build_like_command(
         String::from("glutin")
     };
     args.push(String::from("--manifest-path"));
-    // TODO make this path join cross platform
-    let topdir = "/home/josh/workspace/servo";
-    let manifest_path = format!("{}/ports/{}/Cargo.toml", topdir, port);
+    let manifest_path = {
+        let mut manifest_path = repo_root.clone();
+        manifest_path.push("ports");
+        manifest_path.push(port);
+        manifest_path.push("Cargo.toml");
+        manifest_path.to_str()
+            .expect("failed to convert manifest path to string")
+            .to_owned()
+    };
     args.push(manifest_path);
 
     if let Some(target) = target {
@@ -880,7 +903,6 @@ fn rust_toolchain() -> String {
 /// Wrap std::process::Command printing the command if verbose=true.
 fn call(command: String, args: Vec<String>, env: HashMap<String, String>, verbose: bool) {
     if verbose {
-        // TODO print command and args
         println!("{} {:?}", command, args);
     };
     // TODO translation
