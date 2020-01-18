@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fs::read_to_string, path::PathBuf, process::{Command, exit}};
+use std::{collections::HashMap, env, fs::read_to_string, path::{Path, PathBuf}, process::{Command, exit}};
 use structopt::StructOpt;
 
 #[derive(StructOpt)]
@@ -92,7 +92,28 @@ fn main() {
 /// repository, this will return the path to the root of
 /// the repository. Otherwise it will return None.
 fn get_repo_root() -> Option<PathBuf> {
-    Some(PathBuf::from("/home/josh/workspace/servo"))
+    let mut current_dir = env::current_dir()
+        .expect("failed to read current working directory");
+
+    loop {
+        if is_servo_repo_root(&current_dir) {
+            return Some(current_dir);
+        }
+
+        // mutate current_dir into it's parent directory
+        // and return None if there is no parent (we've
+        // recursed all the way to root)
+        if !current_dir.pop() {
+            return None;
+        }
+    }
+}
+
+fn is_servo_repo_root(path: &Path) -> bool {
+    let mut path = path.to_path_buf();
+    path.push("servobuild.example");
+
+    path.exists()
 }
 
 fn build(repo_root: PathBuf, build_args: BuildArgs, common_args: CommonArgs) {
