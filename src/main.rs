@@ -1,4 +1,4 @@
-use std::{collections::HashMap, path::PathBuf, process::{Command, exit}};
+use std::{collections::HashMap, fs::read_to_string, path::PathBuf, process::{Command, exit}};
 use structopt::StructOpt;
 
 #[derive(StructOpt)]
@@ -16,7 +16,7 @@ struct CommonArgs {
     target: Option<String>,
     // TODO translation
     // mach limits this to "gstreamer" or "dummy", but defaults
-    // to None
+    // to None. Can this be expressed in structopt?
     #[structopt(long)]
     media_stack: Option<String>,
     #[structopt(long)]
@@ -836,22 +836,49 @@ fn run_cargo_build_like_command(
 
 // TODO translation originally this used **kwargs to pass
 // arbitrary args to the call method
-fn call_rustup_run(command: &str, args: Vec<String>, env: HashMap<String, String>, verbose: bool) {
-    // if self.config["tools"]["use-rustup"]:
-    //     assert self.context.bootstrapped
-    //     args = ["rustup" + BIN_SUFFIX, "run", "--install", self.rust_toolchain()] + args
-    // else:
-    //     args[0] += BIN_SUFFIX
-    // return call(args, **kwargs)
+fn call_rustup_run(command: &str, mut args: Vec<String>, env: HashMap<String, String>, verbose: bool) {
+    // BIN_SUFFIX = ".exe" if sys.platform == "win32" else ""
+    let mut bin_suffix = String::new();
     // TODO translation
     // skipping config parsing for now
-    // also BIN_SUFFIX is defined as
-    // BIN_SUFFIX = ".exe" if sys.platform == "win32" else ""
-    return call(command, args, env, verbose)
+    // default config is use-rustup=true
+    let use_rustup = true;
+    let (command, args) = if use_rustup {
+        let rustup_command = "rustup";
+        let mut rustup_args = vec![
+            String::from("run"),
+            String::from("--install"),
+            rust_toolchain(),
+        ];
+        args.insert(0, String::from(command));
+        rustup_args.extend(args);
+
+        (rustup_command, rustup_args)
+    } else {
+        (command, args)
+    };
+
+    let command = format!("{}{}", command, bin_suffix);
+
+    call(command, args, env, verbose)
+}
+
+fn rust_toolchain() -> String {
+    // TODO translation
+    // mach caches this function call to only read the file once
+
+    // TODO fix this path
+    // mach does self.context.topdir / rust-toolchain
+    let toolchain = read_to_string("/home/josh/workspace/servo/rust-toolchain").expect("Failed to read rust_toolchain file.")
+        .trim().to_owned();
+
+    // if windows
+    // toolchain += "-x86_64-pc-windows-msvc";
+    toolchain
 }
 
 /// Wrap std::process::Command printing the command if verbose=true.
-fn call(command: &str, args: Vec<String>, env: HashMap<String, String>, verbose: bool) {
+fn call(command: String, args: Vec<String>, env: HashMap<String, String>, verbose: bool) {
     if verbose {
         // TODO print command and args
         println!("{} {:?}", command, args);
