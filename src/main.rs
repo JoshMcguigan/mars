@@ -162,8 +162,8 @@ fn build(repo_root: PathBuf, build_args: BuildArgs, common_args: CommonArgs) {
     }
 
     features.append(&mut pick_media_stack(media_stack, &target));
-    let mut target_path = get_target_dir();
-    let mut base_path = get_target_dir();
+    let mut target_path = get_target_dir(&repo_root);
+    let mut base_path = get_target_dir(&repo_root);
     if android {
         target_path.push("android");
         base_path = target_path.clone();
@@ -652,7 +652,7 @@ fn build(repo_root: PathBuf, build_args: BuildArgs, common_args: CommonArgs) {
         env.insert(String::from("CXX"), String::from("clang++"));
     }
     let status = run_cargo_build_like_command(
-        repo_root,
+        &repo_root,
         "build", opts, env, verbose,
         target, android, magicleap, libsimpleservo, uwp,
         features, // TODO translation **kwargs
@@ -696,7 +696,7 @@ fn pick_media_stack(
     vec![format!("media-{}", media_stack)]
 }
 
-fn get_target_dir() -> PathBuf {
+fn get_target_dir(repo_root: &PathBuf) -> PathBuf {
     // def get_target_dir(self):
     //     if "CARGO_TARGET_DIR" in os.environ:
     //         return os.environ["CARGO_TARGET_DIR"]
@@ -704,7 +704,10 @@ fn get_target_dir() -> PathBuf {
     //         return path.join(self.context.topdir, "target")
 
     // TODO translation
-    PathBuf::from("~/workspace/servo/target")
+    let mut path = repo_root.clone();
+    path.push("target");
+
+    path
 }
 
 fn build_env(target: &Option<String>, is_build: bool, uwp: bool, features: &Vec<String>) -> HashMap<String, String> {
@@ -741,7 +744,7 @@ fn host_triple() -> String {
 }
 
 fn run_cargo_build_like_command(
-    repo_root: PathBuf,
+    repo_root: &PathBuf,
     command: &str, mut cargo_args: Vec<String>,
     env: HashMap<String, String>, verbose: bool,
     target: Option<String>, android: bool, magicleap: bool, libsimpleservo: bool, uwp: bool,
@@ -854,12 +857,12 @@ fn run_cargo_build_like_command(
     let mut full_args = vec![String::from(command)];
     full_args.append(&mut args);
     full_args.append(&mut cargo_args);
-    return call_rustup_run("cargo", full_args, env, verbose);
+    return call_rustup_run(repo_root, "cargo", full_args, env, verbose);
 }
 
 // TODO translation originally this used **kwargs to pass
 // arbitrary args to the call method
-fn call_rustup_run(command: &str, mut args: Vec<String>, env: HashMap<String, String>, verbose: bool) {
+fn call_rustup_run(repo_root: &PathBuf, command: &str, mut args: Vec<String>, env: HashMap<String, String>, verbose: bool) {
     // BIN_SUFFIX = ".exe" if sys.platform == "win32" else ""
     let mut bin_suffix = String::new();
     // TODO translation
@@ -871,7 +874,7 @@ fn call_rustup_run(command: &str, mut args: Vec<String>, env: HashMap<String, St
         let mut rustup_args = vec![
             String::from("run"),
             String::from("--install"),
-            rust_toolchain(),
+            rust_toolchain(repo_root),
         ];
         args.insert(0, String::from(command));
         rustup_args.extend(args);
@@ -886,13 +889,15 @@ fn call_rustup_run(command: &str, mut args: Vec<String>, env: HashMap<String, St
     call(command, args, env, verbose)
 }
 
-fn rust_toolchain() -> String {
+fn rust_toolchain(repo_root: &PathBuf) -> String {
     // TODO translation
     // mach caches this function call to only read the file once
 
     // TODO fix this path
     // mach does self.context.topdir / rust-toolchain
-    let toolchain = read_to_string("/home/josh/workspace/servo/rust-toolchain").expect("Failed to read rust_toolchain file.")
+    let mut path = repo_root.clone();
+    path.push("rust-toolchain");
+    let toolchain = read_to_string(path).expect("Failed to read rust_toolchain file.")
         .trim().to_owned();
 
     // if windows
