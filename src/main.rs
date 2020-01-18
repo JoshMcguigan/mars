@@ -15,6 +15,8 @@ mod config;
 use config::Config;
 
 fn main() {
+    let args = Args::from_args();
+
     let repo_root = match get_repo_root() {
         Some(path) => path,
         None => {
@@ -23,7 +25,8 @@ fn main() {
         }
     };
 
-    let args = Args::from_args();
+    let config = Config::new(&repo_root);
+
     match args.cmd {
         Subcommands::Build(build_args) => build(repo_root, build_args, args.common),
     };
