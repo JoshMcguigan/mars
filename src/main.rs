@@ -199,7 +199,7 @@ fn build(repo_root: PathBuf, build_args: BuildArgs, common_args: CommonArgs) {
     release_path.push("servo");
 
     let mut dev_path = base_path.clone();
-    dev_path.push("release");
+    dev_path.push("debug");
     dev_path.push("servo");
 
     if !(release || dev) {
