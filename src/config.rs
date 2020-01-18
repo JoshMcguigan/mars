@@ -1,3 +1,5 @@
+use std::{path::PathBuf};
+
 pub struct Config {
     tools: ConfigTools,
     build: ConfigBuild,
@@ -5,6 +7,8 @@ pub struct Config {
 }
 
 pub struct ConfigTools {
+    pub cache_dir: PathBuf,
+    pub cargo_home_dir: PathBuf,
     pub use_rustup: bool,
     pub rustc_with_gold: bool,
     pub notify_command: Option<String>,
