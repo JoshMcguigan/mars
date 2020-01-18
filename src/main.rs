@@ -645,7 +645,8 @@ fn build(build_args: BuildArgs, common_args: CommonArgs) {
     // elapsed = time() - build_start
     // TODO continue translation
     //
-    // TODO compare mach args to python build to mars args
+    // TODO compare mach/mars args to cargo build to
+    // figure out why mars build fails
 
 }
 
@@ -737,7 +738,7 @@ fn run_cargo_build_like_command(
     };
     args.push(String::from("--manifest-path"));
     // TODO make this path join cross platform
-    let topdir = "~//home/josh/workspace/servo";
+    let topdir = "/home/josh/workspace/servo";
     let manifest_path = format!("{}/ports/{}/Cargo.toml", topdir, port);
     args.push(manifest_path);
 
@@ -754,8 +755,9 @@ fn run_cargo_build_like_command(
     // TODO translation
     // if self.config["build"]["debug-mozjs"] or debug_mozjs:
     //     features.append("debugmozjs")
-    // if not magicleap:
-    //     features.append("native-bluetooth")
+    if !magicleap {
+        features.push(String::from("native-bluetooth"));
+    }
     // if uwp:
     //     features.append("canvas2d-raqote")
     //     features.append("no-wgl")
@@ -831,7 +833,7 @@ fn call_rustup_run(command: &str, args: Vec<String>, env: HashMap<String, String
 fn call(command: &str, args: Vec<String>, env: HashMap<String, String>, verbose: bool) {
     if verbose {
         // TODO print command and args
-        unimplemented!();
+        println!("{} {:?}", command, args);
     };
     // TODO translation
     // the original code calls normalize_env here
