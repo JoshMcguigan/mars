@@ -1,5 +1,10 @@
-use std::{collections::HashMap, fs::read_to_string, path::PathBuf, process::{Command, exit}};
 use crate::{BuildArgs, CommonArgs};
+use std::{
+    collections::HashMap,
+    fs::read_to_string,
+    path::PathBuf,
+    process::{exit, Command},
+};
 
 pub fn build(repo_root: PathBuf, build_args: BuildArgs, common_args: CommonArgs) {
     let BuildArgs {
@@ -48,15 +53,15 @@ pub fn build(repo_root: PathBuf, build_args: BuildArgs, common_args: CommonArgs)
             // TODO - translation
             // skipping parsing config file for now
             // target = self.config["android"]["target"]
-        },
-        _ => {},
+        }
+        _ => {}
     }
     if magicleap && target.is_none() {
         target = Some(String::from("aarch64-linux-android"));
     }
     match (&target, android, magicleap) {
         (Some(target), false, false) => android = handle_android_target(&target),
-        _ => {},
+        _ => {}
     }
 
     if !uwp {
@@ -135,7 +140,7 @@ pub fn build(repo_root: PathBuf, build_args: BuildArgs, common_args: CommonArgs)
 
     // TODO translation
     // build_start = time()
-    
+
     let host = host_triple();
     let target_triple = target.clone().unwrap_or(host.clone());
 
@@ -559,36 +564,35 @@ pub fn build(repo_root: PathBuf, build_args: BuildArgs, common_args: CommonArgs)
     }
     let status = run_cargo_build_like_command(
         &repo_root,
-        "build", opts, env, verbose,
-        target, android, magicleap, libsimpleservo, uwp,
+        "build",
+        opts,
+        env,
+        verbose,
+        target,
+        android,
+        magicleap,
+        libsimpleservo,
+        uwp,
         features, // TODO translation **kwargs
     );
 
     // elapsed = time() - build_start
     // TODO continue translation
-    //
-    // TODO compare mach/mars args to cargo build to
-    // figure out why mars build fails
-
 }
 
 fn handle_android_target(target: &str) -> bool {
     unimplemented!();
 }
 
-fn pick_media_stack(
-    media_stack: Option<String>,
-    target: &Option<String>
-    ) -> Vec<String> {
+fn pick_media_stack(media_stack: Option<String>, target: &Option<String>) -> Vec<String> {
     let media_stack = media_stack.unwrap_or_else(|| {
         let use_gstreamer = match target {
             Some(target) => {
-                let android = target.contains("arm7") &&
-                    target.contains("android");
+                let android = target.contains("arm7") && target.contains("android");
                 let x86_64 = target.contains("x86_64");
 
                 android || x86_64
-            },
+            }
             None => true,
         };
 
@@ -616,7 +620,12 @@ fn get_target_dir(repo_root: &PathBuf) -> PathBuf {
     path
 }
 
-fn build_env(target: &Option<String>, is_build: bool, uwp: bool, features: &Vec<String>) -> HashMap<String, String> {
+fn build_env(
+    target: &Option<String>,
+    is_build: bool,
+    uwp: bool,
+    features: &Vec<String>,
+) -> HashMap<String, String> {
     // TODO translation
     HashMap::new()
 }
@@ -651,16 +660,22 @@ fn host_triple() -> String {
 
 fn run_cargo_build_like_command(
     repo_root: &PathBuf,
-    command: &str, mut cargo_args: Vec<String>,
-    env: HashMap<String, String>, verbose: bool,
-    target: Option<String>, android: bool, magicleap: bool, libsimpleservo: bool, uwp: bool,
-    mut features: Vec<String>
+    command: &str,
+    mut cargo_args: Vec<String>,
+    env: HashMap<String, String>,
+    verbose: bool,
+    target: Option<String>,
+    android: bool,
+    magicleap: bool,
+    libsimpleservo: bool,
+    uwp: bool,
+    mut features: Vec<String>,
 ) {
     // TODO translation - these used to be optional args
-    let debug_mozjs = false; 
+    let debug_mozjs = false;
     let with_debug_assertions = false;
-    let with_frame_pointer = false; 
-    let with_raqote = false; 
+    let with_frame_pointer = false;
+    let with_raqote = false;
     let without_wgl = false;
     let with_layout_2020 = false;
     let with_layout_2013 = false;
@@ -673,11 +688,7 @@ fn run_cargo_build_like_command(
 
     let mut args = vec![];
     let port = if libsimpleservo || android {
-        let api = if android {
-            "jniapi"
-        } else {
-            "capi"
-        };
+        let api = if android { "jniapi" } else { "capi" };
         // TODO make this path join cross platform
         format!("libsimpleservo/{}", api)
     } else {
@@ -689,7 +700,8 @@ fn run_cargo_build_like_command(
         manifest_path.push("ports");
         manifest_path.push(port);
         manifest_path.push("Cargo.toml");
-        manifest_path.to_str()
+        manifest_path
+            .to_str()
             .expect("failed to convert manifest path to string")
             .to_owned()
     };
@@ -768,7 +780,13 @@ fn run_cargo_build_like_command(
 
 // TODO translation originally this used **kwargs to pass
 // arbitrary args to the call method
-fn call_rustup_run(repo_root: &PathBuf, command: &str, mut args: Vec<String>, env: HashMap<String, String>, verbose: bool) {
+fn call_rustup_run(
+    repo_root: &PathBuf,
+    command: &str,
+    mut args: Vec<String>,
+    env: HashMap<String, String>,
+    verbose: bool,
+) {
     // BIN_SUFFIX = ".exe" if sys.platform == "win32" else ""
     let mut bin_suffix = String::new();
     // TODO translation
@@ -801,8 +819,10 @@ fn rust_toolchain(repo_root: &PathBuf) -> String {
 
     let mut path = repo_root.clone();
     path.push("rust-toolchain");
-    let toolchain = read_to_string(path).expect("Failed to read rust_toolchain file.")
-        .trim().to_owned();
+    let toolchain = read_to_string(path)
+        .expect("Failed to read rust_toolchain file.")
+        .trim()
+        .to_owned();
 
     // if windows
     // toolchain += "-x86_64-pc-windows-msvc";
@@ -817,8 +837,5 @@ fn call(command: String, args: Vec<String>, env: HashMap<String, String>, verbos
     // TODO translation
     // the original code calls normalize_env here
     // also sets shell=true for windows users in the subprocess.call
-    Command::new(command)
-        .args(args)
-        .envs(env)
-        .status();
+    Command::new(command).args(args).envs(env).status();
 }

@@ -1,4 +1,8 @@
-use std::{env, path::{Path, PathBuf}, process::{Command, exit}};
+use std::{
+    env,
+    path::{Path, PathBuf},
+    process::{exit, Command},
+};
 use structopt::StructOpt;
 
 mod build;
@@ -82,7 +86,7 @@ fn main() {
         None => {
             eprintln!("You must run mars within a servo repository.");
             exit(1)
-        },
+        }
     };
     let args = Args::from_args();
     match args.cmd {
@@ -95,8 +99,7 @@ fn main() {
 /// repository, this will return the path to the root of
 /// the repository. Otherwise it will return None.
 fn get_repo_root() -> Option<PathBuf> {
-    let mut current_dir = env::current_dir()
-        .expect("failed to read current working directory");
+    let mut current_dir = env::current_dir().expect("failed to read current working directory");
 
     loop {
         if is_servo_repo_root(&current_dir) {
