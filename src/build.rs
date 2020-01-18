@@ -1,4 +1,4 @@
-use crate::{BuildArgs, CommonArgs};
+use crate::{BuildArgs, CommonArgs, Config};
 use std::{
     collections::HashMap,
     fs::read_to_string,
@@ -6,7 +6,7 @@ use std::{
     process::{exit, Command},
 };
 
-pub fn build(repo_root: PathBuf, build_args: BuildArgs, common_args: CommonArgs) {
+pub fn build(repo_root: PathBuf, config: Config, build_args: BuildArgs, common_args: CommonArgs) {
     let BuildArgs {
         mut dev,
         mut release,
@@ -43,16 +43,12 @@ pub fn build(repo_root: PathBuf, build_args: BuildArgs, common_args: CommonArgs)
     // The lines that follow were originally defined in
     // CommandBase.pick_target_triple. For now I've inlined them.
     if !android {
-        // TODO - translation
-        // skipping parsing config file for now
-        // android = self.config["build"]["android"]
+        android = config.build.android;
     }
     match (&target, android) {
         (Some(target), true) => assert!(handle_android_target(&target)),
         (None, true) => {
-            // TODO - translation
-            // skipping parsing config file for now
-            // target = self.config["android"]["target"]
+            target = Some(config.android.target.clone());
         }
         _ => {}
     }
@@ -93,11 +89,13 @@ pub fn build(repo_root: PathBuf, build_args: BuildArgs, common_args: CommonArgs)
     dev_path.push("servo");
 
     if !(release || dev) {
-        // TODO translation
-        // if self.config["build"]["mode"] == "dev":
-        //     dev = True
-        // elif self.config["build"]["mode"] == "release":
-        //     release = True
+        if let Some(mode) = config.build.mode {
+            match mode.as_str() {
+                "dev" => dev = true,
+                "release" => release = true,
+                _ => {},
+            };
+        }
         if release_path.exists() && !dev_path.exists() {
             release = true;
         } else if !release_path.exists() && dev_path.exists() {

@@ -12,7 +12,7 @@ mod build;
 use build::build;
 
 mod config;
-use config::Config;
+pub use config::Config;
 
 fn main() {
     let args = Args::from_args();
@@ -28,7 +28,7 @@ fn main() {
     let config = Config::new(&repo_root);
 
     match args.cmd {
-        Subcommands::Build(build_args) => build(repo_root, build_args, args.common),
+        Subcommands::Build(build_args) => build(repo_root, config, build_args, args.common),
     };
 }
 
