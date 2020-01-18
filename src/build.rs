@@ -6,6 +6,7 @@ use std::{
     process::{exit, Command},
 };
 
+#[allow(clippy::cognitive_complexity)]
 pub fn build(repo_root: PathBuf, config: Config, build_args: BuildArgs, common_args: CommonArgs) {
     let BuildArgs {
         mut dev,
@@ -143,10 +144,13 @@ pub fn build(repo_root: PathBuf, config: Config, build_args: BuildArgs, common_a
     let target_triple = target.clone().unwrap_or(host.clone());
 
     if host.contains("apple-darwin") && target_triple == host {
-        // if 'CXXFLAGS' not in env:
-        //     env['CXXFLAGS'] = ''
-        // env["CXXFLAGS"] += "-mmacosx-version-min=10.10"
-        unimplemented!();
+        let osx_version_flag = "-mmacosx-version-min=10.10";
+        let new_val = match env.get("CXXFLAGS") {
+            Some(val) => format!("{}{}", val, osx_version_flag),
+            None => String::from(osx_version_flag),
+        };
+
+        env.insert(String::from("CXXFLAGS"), new_val);
     }
 
     if host.contains("windows") {
