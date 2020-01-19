@@ -56,9 +56,8 @@ pub fn build(repo_root: PathBuf, config: Config, build_args: BuildArgs, common_a
     if magicleap && target.is_none() {
         target = Some(String::from("aarch64-linux-android"));
     }
-    match (&target, android, magicleap) {
-        (Some(target), false, false) => android = handle_android_target(&target),
-        _ => {}
+    if let (Some(target), false, false) = (&target, android, magicleap) {
+        android = handle_android_target(&target)
     }
 
     if !uwp {
@@ -74,18 +73,18 @@ pub fn build(repo_root: PathBuf, config: Config, build_args: BuildArgs, common_a
     let mut base_path = get_target_dir(&repo_root);
     if android {
         target_path.push("android");
-        base_path = target_path.clone();
-        base_path.push(target.clone().unwrap_or(String::new()));
+        base_path = target_path;
+        base_path.push(target.clone().unwrap_or_default());
     } else if magicleap {
         target_path.push("magicleap");
-        base_path = target_path.clone();
-        base_path.push(target.clone().unwrap_or(String::new()));
+        base_path = target_path;
+        base_path.push(target.clone().unwrap_or_default());
     }
     let mut release_path = base_path.clone();
     release_path.push("release");
     release_path.push("servo");
 
-    let mut dev_path = base_path.clone();
+    let mut dev_path = base_path;
     dev_path.push("debug");
     dev_path.push("servo");
 
@@ -113,13 +112,12 @@ pub fn build(repo_root: PathBuf, config: Config, build_args: BuildArgs, common_a
         exit(1);
     }
 
-    let servo_path;
-    if release {
+    let servo_path = if release {
         opts.push(String::from("--release"));
-        servo_path = &release_path;
+        &release_path
     } else {
-        servo_path = &dev_path;
-    }
+        &dev_path
+    };
 
     if let Some(jobs) = jobs {
         opts.push(String::from("-j"));
@@ -141,7 +139,7 @@ pub fn build(repo_root: PathBuf, config: Config, build_args: BuildArgs, common_a
     // build_start = time()
 
     let host = host_triple();
-    let target_triple = target.clone().unwrap_or(host.clone());
+    let target_triple = target.clone().unwrap_or_else(|| host.clone());
 
     if host.contains("apple-darwin") && target_triple == host {
         let osx_version_flag = "-mmacosx-version-min=10.10";
@@ -777,7 +775,7 @@ fn run_cargo_build_like_command(
     let mut full_args = vec![String::from(command)];
     full_args.append(&mut args);
     full_args.append(&mut cargo_args);
-    return call_rustup_run(repo_root, "cargo", full_args, env, verbose);
+    call_rustup_run(repo_root, "cargo", full_args, env, verbose)
 }
 
 // TODO translation originally this used **kwargs to pass
@@ -790,7 +788,7 @@ fn call_rustup_run(
     verbose: bool,
 ) {
     // BIN_SUFFIX = ".exe" if sys.platform == "win32" else ""
-    let mut bin_suffix = String::new();
+    let bin_suffix = String::new();
     // TODO translation
     // skipping config parsing for now
     // default config is use-rustup=true
