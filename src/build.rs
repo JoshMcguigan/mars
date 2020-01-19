@@ -93,7 +93,7 @@ pub fn build(repo_root: PathBuf, config: Config, build_args: BuildArgs, common_a
             match mode.as_str() {
                 "dev" => dev = true,
                 "release" => release = true,
-                _ => {},
+                _ => {}
             };
         }
         if release_path.exists() && !dev_path.exists() {

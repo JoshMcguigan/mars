@@ -54,7 +54,6 @@ pub struct ConfigAndroid {
 
 impl Config {
     pub fn from_str(s: &str) -> Self {
-        toml::from_str(s)
-            .unwrap_or(Default::default())
+        toml::from_str(s).unwrap_or(Default::default())
     }
 }

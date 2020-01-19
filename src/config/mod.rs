@@ -1,4 +1,8 @@
-use std::{env, fs::read_to_string, path::{Path, PathBuf}};
+use std::{
+    env,
+    fs::read_to_string,
+    path::{Path, PathBuf},
+};
 
 mod config_file;
 
@@ -59,43 +63,37 @@ impl Config {
 
         // TODO tranlation
         // resolve_relative paths
-        let cache_dir = config_file.tools.cache_dir
-            .unwrap_or_else(|| {
-                env::var("SERVO_CACHE_DIR")
-                    .map(|path| PathBuf::from(path))
-                    .unwrap_or_else(|_| {
-                        let mut path = repo_root.to_path_buf();
-                        path.push(".servo");
+        let cache_dir = config_file.tools.cache_dir.unwrap_or_else(|| {
+            env::var("SERVO_CACHE_DIR")
+                .map(|path| PathBuf::from(path))
+                .unwrap_or_else(|_| {
+                    let mut path = repo_root.to_path_buf();
+                    path.push(".servo");
 
-                        path
-                    })
-            });
-        let cargo_home_dir = config_file.tools.cargo_home_dir
-            .unwrap_or_else(|| {
-                env::var("SERVO_CACHE_DIR")
-                    .map(|path| PathBuf::from(path))
-                    .unwrap_or_else(|_| {
-                        let mut path = repo_root.to_path_buf();
-                        path.push(".cargo");
+                    path
+                })
+        });
+        let cargo_home_dir = config_file.tools.cargo_home_dir.unwrap_or_else(|| {
+            env::var("SERVO_CACHE_DIR")
+                .map(|path| PathBuf::from(path))
+                .unwrap_or_else(|_| {
+                    let mut path = repo_root.to_path_buf();
+                    path.push(".cargo");
 
-                        path
-                    })
-            });
-        let use_rustup = config_file.tools.use_rustup
-            .unwrap_or(true);
-        let rustc_with_gold = config_file.tools.rustc_with_gold
-            .unwrap_or_else(|| {
-                match env::var("SERVO_RUSTC_WITH_GOLD") {
-                    Ok(val) => {
-                        match val.as_str() {
-                            "True" => true,
-                            "False" => false,
-                            _ => true,
-                        }
-                    },
-                    Err(_) => true,
-                }
-            });
+                    path
+                })
+        });
+        let use_rustup = config_file.tools.use_rustup.unwrap_or(true);
+        let rustc_with_gold = config_file.tools.rustc_with_gold.unwrap_or_else(|| {
+            match env::var("SERVO_RUSTC_WITH_GOLD") {
+                Ok(val) => match val.as_str() {
+                    "True" => true,
+                    "False" => false,
+                    _ => true,
+                },
+                Err(_) => true,
+            }
+        });
 
         let config_tools = ConfigTools {
             cache_dir,
@@ -107,23 +105,16 @@ impl Config {
 
         let config_build = ConfigBuild {
             mode: config_file.build.mode,
-            android: config_file.build.android
-                .unwrap_or(false),
-            debug_assertions: config_file.build.debug_assertions
-                .unwrap_or(false),
-            debug_mozjs: config_file.build.debug_mozjs
-                .unwrap_or(false),
-            webgl_backtrace: config_file.build.webgl_backtrace
-                .unwrap_or(false),
-            dom_backtrace: config_file.build.dom_backtrace
-                .unwrap_or(false),
-            layout_2020: config_file.build.layout_2020
-                .unwrap_or(false),
+            android: config_file.build.android.unwrap_or(false),
+            debug_assertions: config_file.build.debug_assertions.unwrap_or(false),
+            debug_mozjs: config_file.build.debug_mozjs.unwrap_or(false),
+            webgl_backtrace: config_file.build.webgl_backtrace.unwrap_or(false),
+            dom_backtrace: config_file.build.dom_backtrace.unwrap_or(false),
+            layout_2020: config_file.build.layout_2020.unwrap_or(false),
             ccache: config_file.build.ccache,
             rustflags: config_file.build.rustflags,
             incremental: config_file.build.incremental,
-            thinlto: config_file.build.thinlto
-                .unwrap_or(false),
+            thinlto: config_file.build.thinlto.unwrap_or(false),
         };
 
         let config_android = ConfigAndroid {
@@ -137,7 +128,6 @@ impl Config {
             lib: String::from("armeabi-v7a"),
             toolchain_name: String::from("arm-linux-androideabi"),
         };
-
 
         Self {
             tools: config_tools,
